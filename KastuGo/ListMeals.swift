@@ -49,7 +49,9 @@ struct ListMeals: View {
                             .padding()
                     } else {
                         ForEach(mealOwners) { owner in
-                            MealCard(mealOwner: owner)  // Display dynamic meal cards
+                            MealCard(mealOwner: owner, onDelete: {
+                                deleteMealOwner(owner)
+                            })  // Display dynamic meal cards
                         }
                     }
                     AddPersonCard()  // Button to add a new person
@@ -73,4 +75,11 @@ struct ListMeals: View {
             .padding(.bottom)
         }
     }
+    private func deleteMealOwner(_ mealOwner: MealOwner) {
+            withAnimation {
+                modelContext.delete(mealOwner)  // ✅ Deletes from SwiftData
+                try? modelContext.save()       // ✅ Save the deletion
+            }
+        }
 }
+

@@ -8,7 +8,7 @@ import SwiftUI
 
 struct MealCard: View {
     let mealOwner: MealOwner  // Accept a MealOwner object
-
+    let onDelete: () -> Void
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -16,7 +16,7 @@ struct MealCard: View {
                     .font(.headline)
                     .bold()
                 Spacer()
-                Button(action: {
+                Button(action:  {onDelete()
                     print("Delete \(mealOwner.name) tapped")
                 }) {
                     Image(systemName: "trash")
