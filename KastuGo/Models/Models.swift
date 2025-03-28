@@ -5,47 +5,89 @@
 //  Created by sam on 27/03/25.
 //
 
+import SwiftData
 import Foundation
+ 
+@Model
+class Meal {
+    @Attribute(.unique) var id: UUID = UUID()
+    @Relationship(deleteRule: .cascade) var items: [MealItem] = []
+    var notes: String = ""
 
-struct Meal: Identifiable {
-    var id = UUID()
-    var items: [MealItem] = []
+    @Transient
     var subtotal: Double {
         items.reduce(0) { $0 + ($1.price * Double($1.quantity)) }
     }
-    var notes: String
+
+    init(items: [MealItem] = [], notes: String = "") {
+        self.items = items
+        self.notes = notes
+    }
 }
 
-struct MealItem: Identifiable {
-    var id = UUID()
-    var name: String
-    var price: Double
+ 
+ @Model
+class MealItem {
+    @Attribute(.unique) var id: UUID = UUID()
+    @Relationship(deleteRule: .nullify) var menuItem: MenuItem? = nil
     var quantity: Int
-    
+
+    var price: Double {
+        menuItem?.price ?? 0
+    }
+
+    var name: String {
+        menuItem?.name ?? "Unknown"
+    }
+
+    init(menuItem: MenuItem, quantity: Int = 1) {
+        self.menuItem = menuItem
+        self.quantity = quantity
+    }
 }
 
-struct MenuItem {
-    var name: String
+ 
+ @Model
+ class MenuItem {
+     var name: String
     var price: Double
     var category: String
+     
+     init(name: String, price: Double, category: String) {
+         self.name = name
+         self.price = price
+         self.category = category
+     }
+ }
+
+@Model
+class Order {
+    @Attribute(.unique) var id: UUID = UUID()
+        @Relationship(deleteRule: .cascade) var meals: [Meal] = []
+        var timestamp: Date = Date()
+
+        var total: Double {
+            meals.reduce(0) { $0 + $1.subtotal }
+        }
+
+        init(meals: [Meal] = [], timestamp: Date = Date()) {
+            self.meals = meals
+            self.timestamp = timestamp
+        }
 }
 
-struct Order: Identifiable {
-    var id = UUID()
-    var meals: [Meal] = []
-    var total: Double {
-        meals.reduce(0) { $0 + $1.subtotal }
-    }
-    var timestamp: Date = Date()
+@Model
+class draftOrder {
+    @Attribute(.unique) var id: UUID = UUID()
+       @Relationship(deleteRule: .cascade) var meals: [Meal] = []
+       var timestamp: Date = Date()
+
+       var total: Double {
+           meals.reduce(0) { $0 + $1.subtotal }
+       }
+
+       init(meals: [Meal] = [], timestamp: Date = Date()) {
+           self.meals = meals
+           self.timestamp = timestamp
+       }
 }
-
-struct draftOrder: Identifiable {
-    var id = UUID()
-    var meals: [Meal] = []
-    var total: Double {
-        meals.reduce(0) { $0 + $1.subtotal }
-    }
-    var timestamp: Date = Date()
-}
-
-
