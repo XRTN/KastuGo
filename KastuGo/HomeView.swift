@@ -87,16 +87,13 @@ struct HomeView: View {
 
                     // Order Details Section
                     Section {
-                        Button(action: {
-                            print("Order Details tapped")
-                        }) {
+                        NavigationLink(destination: OrderSummaryView()) {
                             Text("Order Details")
                                 .bold()
                                 .foregroundColor(.blue)
                                 .frame(maxWidth: .infinity, alignment: .center)
                         }
-                    }
-                }
+                    }                }
                 .listStyle(.insetGrouped)
             }
         }

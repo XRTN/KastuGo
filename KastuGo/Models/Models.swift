@@ -12,6 +12,7 @@ import Foundation
 class Meal {
     @Attribute(.unique) var id: UUID = UUID()
     @Relationship(deleteRule: .cascade) var items: [MealItem] = []
+    var createdAt: Date = Date()
     var notes: String = ""
 
     @Transient
