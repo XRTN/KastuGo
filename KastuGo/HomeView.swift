@@ -8,7 +8,10 @@ import SwiftUI
 import SwiftData
 
 struct HomeView: View {
-    @Query private var meals: [Meal]
+    // Query only meals that are in the cart
+    @Query(filter: #Predicate<Meal> { $0.isInCart == true })
+    private var cartMeals: [Meal]
+    
     @Environment(\.modelContext) private var modelContext
     @State private var mealToDelete: Meal? = nil
     @State private var showDeleteConfirmation = false
@@ -27,7 +30,7 @@ struct HomeView: View {
                 List {
                     // Meals Section
                     Section(header: Text("Your Order").font(.headline).foregroundColor(.gray)) {
-                        ForEach(Array(zip(meals.indices, meals)), id: \.0) { (index, meal) in
+                        ForEach(Array(zip(cartMeals.indices, cartMeals)), id: \.0) { (index, meal) in
                             NavigationLink(destination: MenuView(meal: meal)) {
                                 VStack(alignment: .leading) {
                                     HStack {
@@ -73,9 +76,7 @@ struct HomeView: View {
                     // Add Meal Section
                     Section {
                         Button(action: {
-                            let newMeal = Meal(items: [], notes: "")
-                            modelContext.insert(newMeal)
-                            try? modelContext.save()
+                            CartManager.shared.createMeal(modelContext: modelContext)
                         }) {
                             HStack {
                                 Text("Add Meal")
@@ -89,12 +90,18 @@ struct HomeView: View {
                     Section {
                         NavigationLink(destination: OrderSummaryView()) {
                             Text("Order Details")
-                                .bold()
                                 .foregroundColor(.blue)
                                 .frame(maxWidth: .infinity, alignment: .center)
                         }
-                    }                }
+                    }
+                }
                 .listStyle(.insetGrouped)
+            }
+            .onAppear {
+                // If there are no meals in the cart, create one
+                if cartMeals.isEmpty {
+                    CartManager.shared.createMeal(modelContext: modelContext)
+                }
             }
         }
         .alert("Delete Meal?", isPresented: $showDeleteConfirmation, actions: {

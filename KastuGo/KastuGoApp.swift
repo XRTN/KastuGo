@@ -12,8 +12,8 @@ import SwiftData
 struct KastuGoApp: App {
    
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema([Meal.self,MealItem.self,MenuItem.self,Order.self,draftOrder.self])
-             let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false) 
+        let schema = Schema([Meal.self,MealItem.self,MenuItem.self,Order.self,draftOrder.self,Cart.self])
+             let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
              return try! ModelContainer(for: schema, configurations: [modelConfiguration])
          }()
     var body: some Scene {

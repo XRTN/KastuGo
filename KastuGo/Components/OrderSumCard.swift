@@ -37,7 +37,6 @@ struct OrderSumCard: View {
                 subtotalRow(meal:meal)
             }
             .padding(.vertical, 10)
-            .background(Color.white)
             .frame(maxWidth: .infinity, alignment: .leading)
             .cornerRadius(10)
             .padding(.horizontal)
@@ -46,6 +45,7 @@ struct OrderSumCard: View {
             }
         }
         .padding()
+      
     }
     
     
@@ -99,8 +99,7 @@ struct OrderSumCard: View {
                     .padding(6)
                     .clipShape(Circle())
             }
-        }
-        .padding(.horizontal)
+        }.padding(.horizontal)
         .alert("Are you sure you want to cancel?", isPresented: $showCancelAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Yes, Remove", role: .destructive) {
@@ -127,10 +126,8 @@ private func dynamicHeight(for meal: Meal) -> CGFloat {
 private func subtotalRow(meal: Meal) -> some View {
     HStack {
         Text("Subtotal")
-            .fontWeight(.bold)
         Spacer()
         Text("Rp \(Int(meal.subtotal))") //Dynamically fetch subtotal
-            .fontWeight(.bold)
     }
     .padding(.horizontal)
     .padding(.vertical, 5)
@@ -145,3 +142,4 @@ extension Double {
         return "Rp \(formatter.string(from: NSNumber(value: self)) ?? "0")"
     }
 }
+
