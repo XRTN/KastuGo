@@ -21,12 +21,12 @@ struct MainTabView: View {
                 }
                 .tag(0)
 
-            OrderSummaryView()
-                .tabItem {
-                    Image(systemName: "list.bullet.rectangle")
-                    Text("Order")
-                }
-                .tag(1)
+//            OrderSummaryView()
+//                .tabItem {
+//                    Image(systemName: "list.bullet.rectangle")
+//                    Text("Order")
+//                }
+//                .tag(1)
 
             HistoryView()
                 .tabItem {

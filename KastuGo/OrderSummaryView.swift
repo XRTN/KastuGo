@@ -14,8 +14,10 @@ struct OrderSummaryView: View {
     var cartMeals: [Meal]
     
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+    
     @State private var showConfirmationAlert = false
-    @State private var navigateToPayment = false
+    @State private var showPaymentView = false
     @State private var newOrder: Order?
 
     var body: some View {
@@ -42,6 +44,13 @@ struct OrderSummaryView: View {
             }
             .navigationTitle(Text("Order Summary"))
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Close") {
+                        dismiss()
+                    }
+                }
+            }
             .alert("Confirm Order", isPresented: $showConfirmationAlert) {
                 Button("Cancel", role: .cancel) { }
                 Button("Confirm", role: .destructive) {
@@ -50,7 +59,7 @@ struct OrderSummaryView: View {
             } message: {
                 Text("After confirming, you will not be able to make changes to your order.")
             }
-            .navigationDestination(isPresented: $navigateToPayment) {
+            .sheet(isPresented: $showPaymentView) {
                 if let order = newOrder {
                     PaymentView(order: order)
                 }
@@ -64,7 +73,6 @@ struct OrderSummaryView: View {
             Text("Total")
             Spacer()
             Text("Rp \(Int(total))")
-
                 .frame(alignment: .trailing)
         }
         .padding(.vertical, 10)
@@ -94,11 +102,6 @@ struct OrderSummaryView: View {
         
         // Set the new order for navigation
         newOrder = order
-        navigateToPayment = true
+        showPaymentView = true
     }
 }
-
-#Preview {
-    MainTabView()
-}
-

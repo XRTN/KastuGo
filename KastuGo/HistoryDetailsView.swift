@@ -19,17 +19,6 @@ struct HistoryDetailsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                // Order header
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("Order #\(order.id.uuidString.prefix(8).uppercased())")
-                        .font(.title)
-                        .bold()
-                        .padding(.vertical)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal)
-                .background(Color(UIColor.systemBackground))
-                
                 ForEach(Array(order.meals.enumerated()), id: \.element.id) { index, meal in
                     // Meal section header
                     HStack {
@@ -114,12 +103,12 @@ struct HistoryDetailsView: View {
                             .padding(.bottom, 8) // Prevents overlap with TabView
                         }
                     }
-
                 }
                 .padding(.top, 16)
             }
         }
-        .navigationBarTitle("", displayMode: .inline)
+        .navigationTitle("Order #\(order.id.uuidString.prefix(8).uppercased())")
+        .navigationBarTitleDisplayMode(.inline)
         .background(Color(UIColor.systemGroupedBackground))
         .alert("Reorder this meal?", isPresented: $showReorderConfirmation) {
             Button("Cancel", role: .cancel) {}

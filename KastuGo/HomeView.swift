@@ -15,6 +15,9 @@ struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var mealToDelete: Meal? = nil
     @State private var showDeleteConfirmation = false
+    @State private var showMenuView = false
+    @State private var selectedMeal: Meal? = nil
+    @State private var showOrderSummary = false
 
     var body: some View {
         NavigationStack {
@@ -31,7 +34,10 @@ struct HomeView: View {
                     // Meals Section
                     Section(header: Text("Your Order").font(.headline).foregroundColor(.gray)) {
                         ForEach(Array(zip(cartMeals.indices, cartMeals)), id: \.0) { (index, meal) in
-                            NavigationLink(destination: MenuView(meal: meal)) {
+                            Button {
+                                selectedMeal = meal
+                                showMenuView = true
+                            } label: {
                                 VStack(alignment: .leading) {
                                     HStack {
                                         Text("Meal \(index + 1)")
@@ -62,6 +68,7 @@ struct HomeView: View {
                                     }
                                 }
                             }
+                            .foregroundColor(.primary)
                             .swipeActions {
                                 Button(role: .destructive) {
                                     mealToDelete = meal
@@ -88,7 +95,9 @@ struct HomeView: View {
 
                     // Order Details Section
                     Section {
-                        NavigationLink(destination: OrderSummaryView()) {
+                        Button {
+                            showOrderSummary = true
+                        } label: {
                             Text("Order Details")
                                 .foregroundColor(.blue)
                                 .frame(maxWidth: .infinity, alignment: .center)
@@ -113,5 +122,13 @@ struct HomeView: View {
                 }
             }
         })
+        .sheet(isPresented: $showMenuView) {
+            if let meal = selectedMeal {
+                MenuView(meal: meal)
+            }
+        }
+        .sheet(isPresented: $showOrderSummary) {
+            OrderSummaryView()
+        }
     }
 }

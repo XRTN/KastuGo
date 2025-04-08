@@ -68,7 +68,6 @@ struct MenuView: View {
                 .searchable(text: $searchText)
             }
             .navigationTitle("Add to Meal")
-            .navigationBarBackButtonHidden(true)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
@@ -132,5 +131,3 @@ extension MealItem {
         return MealItem(menuItem: menuItem, quantity: self.quantity)
     }
 }
-
-

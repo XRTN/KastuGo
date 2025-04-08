@@ -23,6 +23,15 @@ struct PaymentView: View {
         formatter.dateFormat = "dd-MM-yyyy HH:mm"
         return formatter
     }
+    
+    // Number formatter for currency with dots as thousand separators
+    var currencyFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.groupingSeparator = "."
+        formatter.decimalSeparator = ","
+        return formatter
+    }
 
     var body: some View {
         VStack(spacing: 20) {
@@ -39,7 +48,7 @@ struct PaymentView: View {
                 .scaledToFit()
                 .frame(width: 200, height: 200)
 
-            Text("Rp \(Int(order.total))")
+            Text("Rp \(formattedCurrency(value: order.total))")
                 .font(.title)
                 .bold()
 
@@ -84,11 +93,10 @@ struct PaymentView: View {
             Spacer()
             
             Button(action: {
-                // Clear the cart and create a new one
-                CartManager.shared.clearCart(modelContext: modelContext)
+                // Just dismiss the view since cart is already cleared
                 dismiss()
             }) {
-                Text("Start New Order")
+                Text("Back to Home")
                     .foregroundColor(.blue)
                     .padding()
                     .frame(maxWidth: .infinity)
@@ -125,6 +133,17 @@ struct PaymentView: View {
             }
             : nil
         )
+        .onAppear {
+            // Clear the cart and create a new one as soon as PaymentView appears
+            CartManager.shared.clearCart(modelContext: modelContext)
+        }
+        // Prevent dismissal by swipe
+        .interactiveDismissDisabled()
+    }
+    
+    // Helper method to format currency values
+    private func formattedCurrency(value: Double) -> String {
+        return currencyFormatter.string(from: NSNumber(value: value)) ?? "\(Int(value))"
     }
 
     private func generatePDF() -> URL? {
@@ -179,12 +198,14 @@ struct PaymentView: View {
                                  rect: CGRect(x: 40, y: yOffset, width: 200, height: 20))
                         drawText("\(item.quantity)", font: UIFont.systemFont(ofSize: 12),
                                  rect: CGRect(x: 250, y: yOffset, width: 50, height: 20), alignment: .center)
-                        drawText("Rp \(Int(item.price * Double(item.quantity)))", font: UIFont.systemFont(ofSize: 12),
+                        
+                        let itemTotal = item.price * Double(item.quantity)
+                        drawText("Rp \(formattedCurrency(value: itemTotal))", font: UIFont.systemFont(ofSize: 12),
                                  rect: CGRect(x: 320, y: yOffset, width: 100, height: 20), alignment: .right)
                         yOffset += 20
                     }
                     
-                    drawText("Meal Subtotal: Rp \(Int(meal.subtotal))", font: UIFont.boldSystemFont(ofSize: 12),
+                    drawText("Meal Subtotal: Rp \(formattedCurrency(value: meal.subtotal))", font: UIFont.boldSystemFont(ofSize: 12),
                              rect: CGRect(x: 30, y: yOffset, width: pageRect.width - 60, height: 20), alignment: .right)
                     
                     yOffset += 30
@@ -194,7 +215,7 @@ struct PaymentView: View {
                     }
                 }
                 
-                drawText("Total Amount: Rp \(Int(order.total))", font: UIFont.boldSystemFont(ofSize: 16),
+                drawText("Total Amount: Rp \(formattedCurrency(value: order.total))", font: UIFont.boldSystemFont(ofSize: 16),
                          rect: CGRect(x: 30, y: yOffset, width: pageRect.width - 60, height: 30), alignment: .right)
                 
                 yOffset += 40
@@ -223,7 +244,6 @@ struct PaymentView: View {
             print("Failed to generate PDF")
         }
     }
-
 }
 
 // ShareSheet for iOS document sharing
