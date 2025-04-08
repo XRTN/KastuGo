@@ -6,7 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		05686AAC2DA4BE1900099F08 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 05686AAB2DA4BDFF00099F08 /* .gitignore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		05686AAB2DA4BDFF00099F08 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		22F3CAE72D912D9E0038DFDA /* KastuGo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KastuGo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -32,6 +37,7 @@
 		22F3CADE2D912D9E0038DFDA = {
 			isa = PBXGroup;
 			children = (
+				05686AAB2DA4BDFF00099F08 /* .gitignore */,
 				22F3CAE92D912D9E0038DFDA /* KastuGo */,
 				22F3CAE82D912D9E0038DFDA /* Products */,
 			);
@@ -109,6 +115,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				05686AAC2DA4BE1900099F08 /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
