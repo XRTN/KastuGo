@@ -21,95 +21,85 @@ struct HomeView: View {
 
     var body: some View {
         NavigationStack {
-            VStack {
-                // App title
-                Text("KastuGo")
-                    .font(.largeTitle)
-                    .bold()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
-                    .padding(.top)
-
-                List {
-                    // Meals Section
-                    Section(header: Text("Your Order").font(.headline).foregroundColor(.gray)) {
-                        ForEach(Array(zip(cartMeals.indices, cartMeals)), id: \.0) { (index, meal) in
-                            Button {
-                                selectedMeal = meal
-                                showMenuView = true
-                            } label: {
-                                VStack(alignment: .leading) {
-                                    HStack {
-                                        Text("Meal \(index + 1)")
-                                        Spacer()
-                                        Text(meal.items.isEmpty ? "Add Item" : "\(meal.items.count) Items")
-                                            .foregroundColor(.gray)
-                                    }
-                                    
-                                    // Display added menu items
-                                    if !meal.items.isEmpty {
-                                        ScrollView(.horizontal, showsIndicators: false) {
-                                            HStack {
-                                                ForEach(meal.items) { item in
-                                                    VStack(alignment: .leading) {
-                                                        Text(item.name)
-                                                            .font(.caption)
-                                                        Text("x\(item.quantity)")
-                                                            .font(.caption2)
-                                                            .foregroundColor(.gray)
-                                                    }
-                                                    .padding(4)
-                                                    .background(Color.gray.opacity(0.1))
-                                                    .cornerRadius(8)
-                                                }
-                                            }
-                                        }
-                                        .padding(.top, 4)
-                                    }
-                                }
-                            }
-                            .foregroundColor(.primary)
-                            .swipeActions {
-                                Button(role: .destructive) {
-                                    mealToDelete = meal
-                                    showDeleteConfirmation = true
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Add Meal Section
-                    Section {
-                        Button(action: {
-                            CartManager.shared.createMeal(modelContext: modelContext)
-                        }) {
+            List {
+                // Meals Section - removed the section header
+                ForEach(Array(zip(cartMeals.indices, cartMeals)), id: \.0) { (index, meal) in
+                    Button {
+                        selectedMeal = meal
+                        showMenuView = true
+                    } label: {
+                        VStack(alignment: .leading) {
                             HStack {
-                                Text("Add Meal")
+                                Text("Meal \(index + 1)")
                                 Spacer()
-                                Image(systemName: "plus")
+                                Text(meal.items.isEmpty ? "Add Item" : "\(meal.items.count) Items")
+                                    .foregroundColor(.gray)
+                            }
+                            
+                            // Display added menu items
+                            if !meal.items.isEmpty {
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack {
+                                        ForEach(meal.items) { item in
+                                            VStack(alignment: .leading) {
+                                                Text(item.name)
+                                                    .font(.caption)
+                                                Text("x\(item.quantity)")
+                                                    .font(.caption2)
+                                                    .foregroundColor(.gray)
+                                            }
+                                            .padding(4)
+                                            .background(Color.gray.opacity(0.1))
+                                            .cornerRadius(8)
+                                        }
+                                    }
+                                }
+                                .padding(.top, 4)
                             }
                         }
                     }
-
-                    // Order Details Section
-                    Section {
-                        Button {
-                            showOrderSummary = true
+                    .foregroundColor(.primary)
+                    .swipeActions {
+                        Button(role: .destructive) {
+                            mealToDelete = meal
+                            showDeleteConfirmation = true
                         } label: {
-                            Text("Order Details")
-                                .foregroundColor(.blue)
-                                .frame(maxWidth: .infinity, alignment: .center)
+                            Label("Delete", systemImage: "trash")
                         }
                     }
                 }
-                .listStyle(.insetGrouped)
+
+                // Order Details Section
+                Section {
+                    Button {
+                        showOrderSummary = true
+                    } label: {
+                        Text("Order Summary")
+                            .foregroundColor(.blue)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                }
             }
+            .listStyle(.insetGrouped)
+            .navigationTitle("List of Meals")
             .onAppear {
                 // If there are no meals in the cart, create one
                 if cartMeals.isEmpty {
                     CartManager.shared.createMeal(modelContext: modelContext)
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        // Create a new meal
+                        let newMeal = CartManager.shared.createMeal(modelContext: modelContext)
+                        // Set it as the selected meal
+                        selectedMeal = newMeal
+                        // Open the MenuView
+                        showMenuView = true
+                    }) {
+                        Image(systemName: "plus")
+                    }
                 }
             }
         }

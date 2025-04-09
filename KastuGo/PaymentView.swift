@@ -17,6 +17,7 @@ struct PaymentView: View {
     @State private var pdfURL: URL?
     @State private var showPDFPreview = false
     @State private var showSuccessToast = false
+    @State private var showNewOrderAlert = false
     
     var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -68,7 +69,7 @@ struct PaymentView: View {
                 Button(action: {
                     downloadInvoice()
                 }) {
-                    Text("Download")
+                    Text("Get Invoice")
                         .foregroundColor(.blue)
                         .padding()
                         .frame(maxWidth: .infinity)
@@ -94,9 +95,11 @@ struct PaymentView: View {
             
             Button(action: {
                 // Just dismiss the view since cart is already cleared
-                dismiss()
+                showNewOrderAlert = true
+                
+                
             }) {
-                Text("Back to Home")
+                Text("Start a new Order")
                     .foregroundColor(.blue)
                     .padding()
                     .frame(maxWidth: .infinity)
@@ -104,6 +107,14 @@ struct PaymentView: View {
                     .cornerRadius(10)
             }
             .padding()
+            .alert("Start a new order?", isPresented: $showNewOrderAlert) {
+                           Button("Cancel", role: .cancel) {}
+                           Button("Yes", role: .destructive) {
+                               dismiss()
+                           }
+                       } message: {
+                           Text("Are you sure you want to start a new order? Make sure you've saved or sent your invoice first.")
+                       }
             
             Spacer()
         }
