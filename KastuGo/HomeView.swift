@@ -32,9 +32,10 @@ struct HomeView: View {
     @State private var activeSheet: ActiveSheet? = nil
     @State private var showDraftSavedAlert = false
     @State private var showIncompleteMealWarning = false
-    
+    @State private var navPath = NavigationPath()
+
     var body: some View {
-        NavigationStack {
+        NavigationStack(path:$navPath) {
             VStack {
                 // Top Title
                 HStack {
@@ -176,7 +177,7 @@ struct HomeView: View {
                 case .menu(let meal):
                     MenuView(meal: meal)
                 case .orderSummary:
-                    OrderSummaryView()
+                    OrderSummaryView(navPath: $navPath)
                 }
             }
         }

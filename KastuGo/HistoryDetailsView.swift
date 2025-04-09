@@ -15,6 +15,7 @@ struct HistoryDetailsView: View {
     @State private var showReorderAllConfirmation = false
     @State private var selectedMeal: Meal?
     @State private var showReorderCompleteToast = false
+    @State private var showInvoiceView = false
     
     var body: some View {
         ScrollView {
@@ -86,23 +87,43 @@ struct HistoryDetailsView: View {
                     .padding()
                     .background(Color(UIColor.systemGroupedBackground))
                     
-                    // Reorder All button
-                    .safeAreaInset(edge: .bottom) {
-                        VStack {
-                            Button(action: {
-                                showReorderAllConfirmation = true
-                            }) {
-                                Text("Reorder All")
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 16)
-                                    .background(Color.blue)
-                                    .cornerRadius(10)
-                                    .padding(.horizontal)
+                    // Action buttons section
+                    VStack(spacing: 12) {
+                        // Invoice Button
+                        Button(action: {
+                            showInvoiceView = true
+                        }) {
+                            HStack {
+                                Image(systemName: "doc.text")
+                                Text("View Invoice")
                             }
-                            .padding(.bottom, 8) // Prevents overlap with TabView
+                            .foregroundColor(.blue)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color.white)
+                            .cornerRadius(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.blue, lineWidth: 1)
+                            )
+                            .padding(.horizontal)
                         }
+                        
+                        // Reorder All button
+                        Button(action: {
+                            showReorderAllConfirmation = true
+                        }) {
+                            Text("Reorder All")
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background(Color.blue)
+                                .cornerRadius(10)
+                                .padding(.horizontal)
+                        }
+                        .padding(.bottom, 8) // Prevents overlap with TabView
                     }
+                    .padding(.top, 8)
                 }
                 .padding(.top, 16)
             }
@@ -141,6 +162,9 @@ struct HistoryDetailsView: View {
             }
             : nil
         )
+        .navigationDestination(isPresented: $showInvoiceView) {
+            OrderInvoiceView(order: order)
+        }
     }
     
     // Helper function to calculate the subtotal for a meal
