@@ -7,118 +7,205 @@
 import SwiftUI
 import SwiftData
 
+// MARK: - Modal Sheet Management
+enum ActiveSheet: Identifiable {
+    case menu(meal: Meal)
+    case orderSummary
+    
+    var id: String {
+        switch self {
+        case .menu(let meal):
+            return "menu_\(meal.id)"
+        case .orderSummary:
+            return "orderSummary"
+        }
+    }
+}
+
 struct HomeView: View {
-    // Query only meals that are in the cart
     @Query(filter: #Predicate<Meal> { $0.isInCart == true })
     private var cartMeals: [Meal]
     
     @Environment(\.modelContext) private var modelContext
     @State private var mealToDelete: Meal? = nil
     @State private var showDeleteConfirmation = false
-    @State private var showMenuView = false
-    @State private var selectedMeal: Meal? = nil
-    @State private var showOrderSummary = false
-
+    @State private var activeSheet: ActiveSheet? = nil
+    @State private var showDraftSavedAlert = false
+    @State private var showIncompleteMealWarning = false
+    
     var body: some View {
         NavigationStack {
-            List {
-                // Meals Section - removed the section header
-                ForEach(Array(zip(cartMeals.indices, cartMeals)), id: \.0) { (index, meal) in
-                    Button {
-                        selectedMeal = meal
-                        showMenuView = true
-                    } label: {
-                        VStack(alignment: .leading) {
-                            HStack {
-                                Text("Meal \(index + 1)")
-                                Spacer()
-                                Text(meal.items.isEmpty ? "Add Item" : "\(meal.items.count) Items")
-                                    .foregroundColor(.gray)
+            VStack {
+                // Top Title
+                HStack {
+                    Text("List of Meals")
+                        .font(.largeTitle)
+                        .bold()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                        .padding(.top)
+                    
+                    // Add Meal Section
+                    Section {
+                        Button(action: {
+                            let newMeal = CartManager.shared.createMeal(modelContext: modelContext)
+
+                                // 2. Immediately open MenuView for that new meal
+                                DispatchQueue.main.async {
+                                    activeSheet = .menu(meal: newMeal)
+                                }
+                        }) {
+                            Image(systemName: "plus")
+                                .font(.title)
+                                .foregroundColor(.blue)
+                                .padding(.trailing, 8)
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.top)
+                }
+                
+                List {
+                    // Meals Section (No header anymore)
+                    ForEach(Array(zip(cartMeals.indices, cartMeals)), id: \.0) { (index, meal) in
+                        Button {
+                            DispatchQueue.main.async {
+                                activeSheet = .menu(meal: meal)
                             }
-                            
-                            // Display added menu items
-                            if !meal.items.isEmpty {
-                                ScrollView(.horizontal, showsIndicators: false) {
-                                    HStack {
-                                        ForEach(meal.items) { item in
-                                            VStack(alignment: .leading) {
-                                                Text(item.name)
-                                                    .font(.caption)
-                                                Text("x\(item.quantity)")
-                                                    .font(.caption2)
-                                                    .foregroundColor(.gray)
+                        } label: {
+                            VStack(alignment: .leading) {
+                                HStack {
+                                    Text("Meal \(index + 1)")
+                                    Spacer()
+                                    Text(meal.items.isEmpty ? "Add Item" : "\(meal.items.count) Items")
+                                        .foregroundColor(.gray)
+                                }
+                                
+                                if !meal.items.isEmpty {
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        HStack {
+                                            ForEach(meal.items) { item in
+                                                VStack(alignment: .leading) {
+                                                    Text(item.name)
+                                                        .font(.caption)
+                                                    Text("x\(item.quantity)")
+                                                        .font(.caption2)
+                                                        .foregroundColor(.gray)
+                                                }
+                                                .padding(4)
+                                                .background(Color.gray.opacity(0.1))
+                                                .cornerRadius(8)
                                             }
-                                            .padding(4)
-                                            .background(Color.gray.opacity(0.1))
-                                            .cornerRadius(8)
                                         }
                                     }
+                                    .padding(.top, 4)
                                 }
-                                .padding(.top, 4)
+                            }
+                        }
+                        .foregroundColor(.primary)
+                        .swipeActions {
+                            Button(role: .destructive) {
+                                mealToDelete = meal
+                                showDeleteConfirmation = true
+                            } label: {
+                                Label("Delete", systemImage: "trash")
                             }
                         }
                     }
-                    .foregroundColor(.primary)
-                    .swipeActions {
-                        Button(role: .destructive) {
-                            mealToDelete = meal
-                            showDeleteConfirmation = true
-                        } label: {
-                            Label("Delete", systemImage: "trash")
+                }
+                .listStyle(.insetGrouped)
+                // Primary & Secondary Buttons
+                HStack(spacing: 16) {
+                    Button(action: {
+                        if cartMeals.contains(where: { $0.items.isEmpty || $0.subtotal == 0 }) {
+                            showIncompleteMealAlert()
+                        } else {
+                            saveCurrentCartAsDraft()
                         }
-                    }
-                }
-
-                // Order Details Section
-                Section {
-                    Button {
-                        showOrderSummary = true
-                    } label: {
-                        Text("Order Summary")
+                    }) {
+                        Text("Save as Draft")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.gray.opacity(0.2))
                             .foregroundColor(.blue)
-                            .frame(maxWidth: .infinity, alignment: .center)
+                            .cornerRadius(10)
+                    }
+                    
+                    Button(action: {
+                        if cartMeals.contains(where: { $0.items.isEmpty || $0.subtotal == 0 }) {
+                            showIncompleteMealAlert()
+                        } else {
+                            activeSheet = .orderSummary
+                        }
+                    }) {
+                        Text("Order Summary")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
                     }
                 }
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .padding(.bottom, 16)
+
             }
-            .listStyle(.insetGrouped)
-            .navigationTitle("List of Meals")
             .onAppear {
-                // If there are no meals in the cart, create one
                 if cartMeals.isEmpty {
                     CartManager.shared.createMeal(modelContext: modelContext)
                 }
             }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        // Create a new meal
-                        let newMeal = CartManager.shared.createMeal(modelContext: modelContext)
-                        // Set it as the selected meal
-                        selectedMeal = newMeal
-                        // Open the MenuView
-                        showMenuView = true
-                    }) {
-                        Image(systemName: "plus")
+            .alert("Delete Meal?", isPresented: $showDeleteConfirmation) {
+                Button("Cancel", role: .cancel) {}
+                Button("Delete", role: .destructive) {
+                    if let meal = mealToDelete {
+                        modelContext.delete(meal)
+                        try? modelContext.save()
                     }
                 }
             }
-        }
-        .alert("Delete Meal?", isPresented: $showDeleteConfirmation, actions: {
-            Button("Cancel", role: .cancel) {}
-            Button("Delete", role: .destructive) {
-                if let meal = mealToDelete {
-                    modelContext.delete(meal)
-                    try? modelContext.save()
+            .alert("Draft Saved!", isPresented: $showDraftSavedAlert) {
+                Button("OK", role: .cancel) {}
+            }.alert("Incomplete Meal Detected", isPresented: $showIncompleteMealWarning) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("There’s a meal that still has no item. Please complete your meal before proceeding.")
+            }.sheet(item: $activeSheet) { item in
+                switch item {
+                case .menu(let meal):
+                    MenuView(meal: meal)
+                case .orderSummary:
+                    OrderSummaryView()
                 }
             }
-        })
-        .sheet(isPresented: $showMenuView) {
-            if let meal = selectedMeal {
-                MenuView(meal: meal)
-            }
         }
-        .sheet(isPresented: $showOrderSummary) {
-            OrderSummaryView()
+    }
+    
+    // MARK: - Save current cart as draft
+    private func saveCurrentCartAsDraft() {
+        let cartMeals = CartManager.shared.getCartMeals(modelContext: modelContext)
+        
+        guard !cartMeals.isEmpty else { return }
+        
+        let draftMeals = cartMeals.map { $0.deepCopy() }
+        let newDraft = draftOrder(meals: draftMeals, timestamp: Date())
+        
+        modelContext.insert(newDraft)
+        
+        for meal in cartMeals {
+            modelContext.delete(meal)
         }
+        
+        try? modelContext.save()
+        
+        showDraftSavedAlert = true
+        
+        DispatchQueue.main.async {
+            _ = CartManager.shared.createMeal(modelContext: modelContext)
+        }
+    }
+    private func showIncompleteMealAlert() {
+        showIncompleteMealWarning = true
     }
 }

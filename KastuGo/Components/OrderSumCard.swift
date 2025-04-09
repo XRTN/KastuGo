@@ -21,7 +21,6 @@ struct OrderSumCard: View {
                 .padding(.horizontal)
                 .fontWeight(.regular)
             
-            VStack(alignment: .leading) {
                 mealItemsList()  //Extracted into a separate function
                 Button(action: { isNavigating = true }) {
                     HStack {
@@ -35,17 +34,14 @@ struct OrderSumCard: View {
                 }
                 Divider()
                 subtotalRow(meal:meal)
-            }
-            .padding(.vertical, 10)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .cornerRadius(10)
-            .padding(.horizontal)
-            .navigationDestination(isPresented: $isNavigating){
-                MenuView(meal: meal)
-            }
         }
-        .padding()
-      
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .cornerRadius(10)
+        .padding(.horizontal)
+        .navigationDestination(isPresented: $isNavigating){
+            MenuView(meal: meal)
+        }
     }
     
     

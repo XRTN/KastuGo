@@ -1,20 +1,19 @@
-//
 //  Models.swift
 //  KastuGo
 //
 //  Created by sam on 27/03/25.
-//
 
 import SwiftData
 import Foundation
- 
+
+// MARK: - Meal Model
 @Model
 class Meal {
     @Attribute(.unique) var id: UUID = UUID()
     @Relationship(deleteRule: .cascade) var items: [MealItem] = []
     var createdAt: Date = Date()
     var notes: String = ""
-    var isInCart: Bool = true  // Flag to identify if the meal is in active cart
+    var isInCart: Bool = true  // Flag to identify if meal is in active cart
 
     @Transient
     var subtotal: Double {
@@ -26,22 +25,22 @@ class Meal {
         self.notes = notes
         self.isInCart = isInCart
     }
-    
-    // Create a deep copy of this meal
+
+    /// Create a deep copy of this Meal
     func deepCopy() -> Meal {
         let copiedMeal = Meal(items: [], notes: self.notes, isInCart: false)
-        
-        // Copy each item
+
         for item in self.items {
             if let menuItem = item.menuItem {
                 copiedMeal.items.append(MealItem(menuItem: menuItem, quantity: item.quantity))
             }
         }
-        
+
         return copiedMeal
     }
 }
 
+// MARK: - MealItem Model
 @Model
 class MealItem {
     @Attribute(.unique) var id: UUID = UUID()
@@ -62,12 +61,13 @@ class MealItem {
     }
 }
 
+// MARK: - MenuItem Model
 @Model
 class MenuItem {
     var name: String
     var price: Double
     var category: String
-     
+
     init(name: String, price: Double, category: String) {
         self.name = name
         self.price = price
@@ -75,6 +75,7 @@ class MenuItem {
     }
 }
 
+// MARK: - Order Model
 @Model
 class Order {
     @Attribute(.unique) var id: UUID = UUID()
@@ -91,30 +92,32 @@ class Order {
     }
 }
 
+// MARK: - DraftOrder Model
 @Model
 class draftOrder {
     @Attribute(.unique) var id: UUID = UUID()
-       @Relationship(deleteRule: .cascade) var meals: [Meal] = []
-       var timestamp: Date = Date()
+    @Relationship(deleteRule: .cascade) var meals: [Meal] = []
+    var timestamp: Date = Date()
 
-       var total: Double {
-           meals.reduce(0) { $0 + $1.subtotal }
-       }
+    var total: Double {
+        meals.reduce(0) { $0 + $1.subtotal }
+    }
 
-       init(meals: [Meal] = [], timestamp: Date = Date()) {
-           self.meals = meals
-           self.timestamp = timestamp
-       }
+    init(meals: [Meal] = [], timestamp: Date = Date()) {
+        self.meals = meals
+        self.timestamp = timestamp
+    }
 }
 
+// MARK: - Cart Model
 @Model
 class Cart {
     @Attribute(.unique) var id: UUID = UUID()
     var lastUpdated: Date = Date()
+
     static var shared: Cart {
-        fatalError("Access through CartManager instead")
+        fatalError("Access Cart through CartManager instead")
     }
-    
+
     init() {}
 }
-
