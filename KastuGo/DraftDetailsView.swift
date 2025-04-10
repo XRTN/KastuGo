@@ -1,4 +1,3 @@
-//
 //  DraftDetailsView.swift
 //  KastuGo
 //

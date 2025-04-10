@@ -17,10 +17,8 @@ struct MenuView: View {
     
     @State private var selectedCategory: String? = nil
     @State private var searchText = ""
-    
-    // Store original items separately
     @State private var originalItems: [MealItem] = []
-    
+
     var filteredMenu: [MenuItem] {
         menuItems.filter { item in
             (selectedCategory == nil || item.category == selectedCategory) &&
@@ -32,32 +30,63 @@ struct MenuView: View {
         Array(Set(menuItems.map { $0.category })).sorted()
     }
 
+    var mealTotal: Double {
+        meal.items.reduce(0) { $0 + ($1.price * Double($1.quantity)) }
+    }
+
     var body: some View {
         NavigationStack {
-            VStack {
+            VStack(spacing: 0) {
                 List {
                     ForEach(groupedMenuItems(), id: \.key) { category, items in
                         Section(header: Text(category).bold()) {
                             ForEach(items, id: \.name) { item in
                                 HStack {
-                                    VStack(alignment: .leading) {
+                                    VStack(alignment: .leading, spacing: 4) {
                                         Text(item.name)
-                                        Text("Rp. \(item.price, specifier: "%.0f")")
-                                            .foregroundColor(.gray)
+                                            .font(.body)
+                                        
+                                        let itemQuantity = quantityForMenuItem(item)
+                                        let displayedPrice = itemQuantity == 0 ? item.price : (item.price * Double(itemQuantity))
+                                        
+                                        Text("Rp \(formattedCurrency(value: displayedPrice))")
+                                            .foregroundColor(.primary)
+                                            .fontWeight(itemQuantity > 0 ? .bold : .regular)
+                                            .font(.caption)
                                     }
                                     
                                     Spacer()
                                     
-                                    Stepper(value: Binding(
-                                        get: { quantityForMenuItem(item) },
-                                        set: { newValue in
-                                            updateMealItem(item: item, quantity: newValue)
+                                    HStack(spacing: 8) {
+                                        Button(action: {
+                                            let currentQuantity = quantityForMenuItem(item)
+                                            if currentQuantity > 0 {
+                                                updateMealItem(item: item, quantity: currentQuantity - 1)
+                                            }
+                                        }) {
+                                            Image(systemName: "minus")
+                                                .foregroundColor(.blue)
                                         }
-                                    ), in: 0...10) {
-                                        Text("x\(quantityForMenuItem(item))")
-                                            .font(.caption2)
-                                            .foregroundColor(.gray)
+                                        .buttonStyle(.plain)
+                                        .contentShape(Rectangle())
+                                        
+                                        Text("\(quantityForMenuItem(item))")
+                                            .font(.subheadline)
+                                            .foregroundColor(.primary)
+
+                                        Button(action: {
+                                            let currentQuantity = quantityForMenuItem(item)
+                                            if currentQuantity < 10 {
+                                                updateMealItem(item: item, quantity: currentQuantity + 1)
+                                            }
+                                        }) {
+                                            Image(systemName: "plus")
+                                                .foregroundColor(.blue)
+                                        }
+                                        .buttonStyle(.plain)
+                                        .contentShape(Rectangle())
                                     }
+
                                 }
                                 .padding(.vertical, 4)
                             }
@@ -66,6 +95,27 @@ struct MenuView: View {
                 }
                 .listStyle(.insetGrouped)
                 .searchable(text: $searchText)
+                
+                // Total Section
+                VStack(spacing: 0) {
+                    Divider()
+                    
+                    HStack {
+                        Text("Total")
+                            .font(.headline)
+                        Spacer()
+                        Text("Rp \(formattedCurrency(value: mealTotal))")
+                            .font(.headline)
+                            .bold()
+                    }
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                }
+                .background(Color(.systemGray6)) // Light background under total
             }
             .navigationTitle("Add to Meal")
             .toolbar {
@@ -101,6 +151,7 @@ struct MenuView: View {
         }
     }
 
+    // MARK: - Helper Functions
     func groupedMenuItems() -> [(key: String, value: [MenuItem])] {
         let grouped = Dictionary(grouping: filteredMenu) { $0.category }
         return grouped.sorted { $0.key < $1.key }
@@ -121,8 +172,17 @@ struct MenuView: View {
             }
         }
     }
+    
+    func formattedCurrency(value: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.groupingSeparator = "."
+        formatter.decimalSeparator = ","
+        return formatter.string(from: NSNumber(value: value)) ?? "\(Int(value))"
+    }
 }
 
+// MARK: - Extension to copy MealItem
 extension MealItem {
     func copy() -> MealItem {
         guard let menuItem = self.menuItem else {
@@ -131,3 +191,4 @@ extension MealItem {
         return MealItem(menuItem: menuItem, quantity: self.quantity)
     }
 }
+

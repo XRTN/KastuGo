@@ -164,6 +164,8 @@ struct PaymentView: View {
             }
             : nil
         )
+        .navigationBarBackButtonHidden(true)
+
     }
 
     private func formattedCurrency(value: Double) -> String {

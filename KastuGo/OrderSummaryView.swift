@@ -11,7 +11,7 @@ import SwiftData
 struct OrderSummaryView: View {
     @Query(filter: #Predicate<Meal> { $0.isInCart == true }, sort: \Meal.createdAt)
     var cartMeals: [Meal]
-
+    
     @Environment(\.dismiss) private var dismiss
     @State private var showConfirmationAlert = false
     @State private var navigateToPayment = false
@@ -24,18 +24,17 @@ struct OrderSummaryView: View {
                     VStack(alignment: .leading, spacing: 10) {
                         ForEach(Array(cartMeals.enumerated()), id: \.element.id) { index, meal in
                             OrderSumCard(meal: meal, mealIndex: index)
+                                
                         }
                     }
+                    .padding(.vertical)
                 }
-
                 Divider()
-
                 totalRow(total: cartMeals.reduce(0) { $0 + $1.subtotal })
-
                 Spacer()
-
                 confirmButton()
             }
+
             .navigationTitle("Order Summary")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
@@ -47,7 +46,7 @@ struct OrderSummaryView: View {
             }
             .alert("Confirm Order", isPresented: $showConfirmationAlert) {
                 Button("Cancel", role: .cancel) {}
-                Button("Proceed", role: .destructive) {
+                Button("Confirm", role: .destructive) {
                     navigateToPayment = true
                 }
             } message: {
@@ -58,26 +57,32 @@ struct OrderSummaryView: View {
             }
         }
     }
-
+    
     private func totalRow(total: Double) -> some View {
         HStack {
             Text("Total")
             Spacer()
             Text("Rp \(Int(total))")
         }
+        .fontWeight(.bold)
         .padding(.vertical, 10)
         .padding(.horizontal, 50)
     }
-
-    private func confirmButton() -> some View {
-        Button("Confirm") {
-            showConfirmationAlert = true
+    
+    @ViewBuilder
+        private func confirmButton() -> some View {
+            Button(action: {
+                showConfirmationAlert = true
+            }) {
+                Text("Confirm")
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(cartMeals.isEmpty ? Color.gray.opacity(0.5) : Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+            }
+            .padding()
+            .disabled(cartMeals.isEmpty)
         }
-        .frame(maxWidth: .infinity)
-        .padding()
-        .background(Color.gray.opacity(0.2))
-        .foregroundColor(.blue)
-        .cornerRadius(10)
-        .padding()
-    }
 }

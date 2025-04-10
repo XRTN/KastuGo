@@ -19,29 +19,33 @@ struct OrderSumCard: View {
         VStack(alignment: .leading) {
             Text("Meal \(mealIndex + 1)")
                 .padding(.horizontal)
-                .fontWeight(.regular)
+                .fontWeight(.bold)
             
-                mealItemsList()  //Extracted into a separate function
-                Button(action: { isNavigating = true }) {
-                    HStack {
-                        Spacer()
-                        Text("Add Item")
-                            .fontWeight(.regular)
-                            .padding(.leading)
-                        Image(systemName: "chevron.right")
-                            .padding(.trailing)
-                    }
+            mealItemsList()  //Extracted into a separate function
+            Button(action: { isNavigating = true }) {
+                HStack {
+                    Spacer()
+                    Text("Add Item")
+                        .font(.footnote)
+                        .foregroundStyle(.blue)
                 }
-                Divider()
-                subtotalRow(meal:meal)
+            }
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .padding(.trailing)
+            subtotalRow(meal:meal)
         }
         .padding(.vertical, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .cornerRadius(10)
+        .cornerRadius(12)
         .padding(.horizontal)
         .navigationDestination(isPresented: $isNavigating){
             MenuView(meal: meal)
         }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
+        .padding(.horizontal)
     }
     
     
@@ -63,15 +67,12 @@ struct OrderSumCard: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.name)
                     .font(.body)
-                Text("Rp \(Int(item.price))")
+                Text("Rp \(Int(item.price * Double(item.quantity)))")
                     .font(.caption)
                     .foregroundColor(.gray)
             }
             
             Spacer()
-            
-            Text("x \(item.quantity)")
-                .fontWeight(.regular)
             
             Button(action: {
                 if item.quantity == 1 {
@@ -87,6 +88,9 @@ struct OrderSumCard: View {
                     .clipShape(Circle())
             }
             
+            Text("\(item.quantity)")
+                .fontWeight(.regular)
+            
             Button(action: {
                 item.quantity += 1
             }) {
@@ -95,7 +99,8 @@ struct OrderSumCard: View {
                     .padding(6)
                     .clipShape(Circle())
             }
-        }.padding(.horizontal)
+        }
+        .padding(.horizontal)
         .alert("Are you sure you want to cancel?", isPresented: $showCancelAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Yes, Remove", role: .destructive) {
@@ -110,32 +115,21 @@ struct OrderSumCard: View {
         }
     }
     
-}
-
-private func dynamicHeight(for meal: Meal) -> CGFloat {
-    let baseHeight: CGFloat = 50 // Base padding height
-    let rowHeight: CGFloat = 40  // Estimated height per item
-    return baseHeight + (rowHeight * CGFloat(meal.items.count))
-}
-
-@ViewBuilder
-private func subtotalRow(meal: Meal) -> some View {
-    HStack {
-        Text("Subtotal")
-        Spacer()
-        Text("Rp \(Int(meal.subtotal))") //Dynamically fetch subtotal
+    private func dynamicHeight(for meal: Meal) -> CGFloat {
+        let baseHeight: CGFloat = 50 // Base padding height
+        let rowHeight: CGFloat = 40  // Estimated height per item
+        return baseHeight + (rowHeight * CGFloat(meal.items.count))
     }
-    .padding(.horizontal)
-    .padding(.vertical, 5)
-}
-
-extension Double {
-    var formattedRupiah: String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.groupingSeparator = "."
-        formatter.maximumFractionDigits = 0
-        return "Rp \(formatter.string(from: NSNumber(value: self)) ?? "0")"
+    
+    @ViewBuilder
+    private func subtotalRow(meal: Meal) -> some View {
+        HStack {
+            Text("Subtotal")
+            Spacer()
+            Text("Rp \(Int(meal.subtotal))") //Dynamically fetch subtotal
+        }
+        .fontWeight(.bold)
+        .padding(.horizontal)
+        .padding(.vertical, 5)
     }
 }
-
